@@ -42,13 +42,13 @@ void fractalTree(TurtleController& turtle,const float& angle, const float& dista
 			turtle.fastForward(distance);
 			break;
 		case '+':
-			turtle.left(angle);
+			turtle.fastLeft(angle);
 			break;
 		case '[':
 			turtle.pushState();
 			break;
 		case '-':
-			turtle.right(angle);
+			turtle.fastRight(angle);
 			break;
 		case ']':
 			turtle.popState();
@@ -64,7 +64,7 @@ void fractalTree(TurtleController& turtle,const float& angle, const float& dista
 
 void ex1(Canvas& c,const float& r = 100.f,const int& pointCount = 180) 
 {
-	TurtleController turtle(c.turlte);
+	TurtleController turtle(c.newTurtle("1"));
 
 	turtle.setLinesColor(100, 100, 255);
 	turtle.setSpeed(300000.f);
@@ -94,7 +94,7 @@ float sin__(const float& x)
 
 void ex2(Canvas& c)
 {
-	TurtleController turtle(c.turlte);
+	TurtleController turtle(c.newTurtle("1"));
 	turtle.setSpeed(3000.f);
 	turtle.setLinesColor(120, 120, 255);
 	turtle.penUp();
@@ -125,7 +125,7 @@ void ex2(Canvas& c)
 }
 void ex3(Canvas& c) 
 {
-	TurtleController turtle(c.turlte);
+	TurtleController turtle(c.newTurtle("1"));
 	c.setBackgroundColor(0, 0, 0);
 	int a = 0;
 	int b = 0;
@@ -149,9 +149,10 @@ void ex3(Canvas& c)
 }
 void ex4(Canvas& c) 
 {
-	TurtleController turtle(c.turlte);
+	TurtleController turtle(c.newTurtle("1"));
 	c.setBackgroundColor(0, 0, 0);
 	turtle.setSpeed(2000);
+	turtle.setFastUpdate(true);
 	int r = 255;
 	int g = 0;
 	int b = 0;
@@ -181,18 +182,123 @@ void ex4(Canvas& c)
 		{
 			b -= 3;
 		}
-		turtle.forward(50 + i);
-		turtle.right(91);
+		turtle.fastForward(50 + i);
+		turtle.fastRight(91);
 		turtle.setLinesColor(r, g, b);
+
 	}
+}
+
+void DragonCurve(Canvas& canvas,const std::string& turtleName,const float& len,const float& angle, const int& iter = 3) 
+{
+	TurtleController turtle;
+	if (canvas.isExistTurtle(turtleName)) 
+	{
+		turtle = canvas.getTurtle(turtleName);
+	}
+	else 
+	{
+		turtle = canvas.newTurtle(turtleName);
+	}
+	turtle.setFastUpdate(true);
+	std::string start = "FX";
+
+	for (int i = 0; i < iter; ++i) 
+	{
+		std::string tmp;
+		tmp.reserve(start.size() * 5);
+		for (int i = 0; i < start.size(); ++i) 
+		{
+			switch (start[i])
+			{
+			case 'X':
+				tmp.append("X+YF");
+				break;
+			case 'Y':
+				tmp.append("FX-Y");
+				break;
+			default:
+				tmp.push_back(start[i]);
+				break;
+			}
+		}
+		start = std::move(tmp);
+	}
+	for (const char& c : start) 
+	{
+		switch (c)
+		{
+		case 'F':
+			turtle.fastForward(len);
+			break;
+		case '+':
+			turtle.fastRight(angle);
+			break;
+		case '-':
+			turtle.fastLeft(angle);
+			break;
+		default:
+			break;
+		}
+	}
+
+}
+
+void ex5(Canvas& c) 
+{
+	TurtleController t1 = c.newTurtle("t1");
+	TurtleController t2 = c.newTurtle("t2");
+
+	const float R = 100.f;
+	const float zoom = 100.f;
+	const float PI = 3.1415926535f;
+	const sf::Color color1 = sf::Color::Red;
+	const sf::Color color2 = sf::Color::Blue;
+	t1.setLinesColor(color1.r, color1.g, color1.b);
+	t2.setLinesColor(color2.r, color2.g, color2.b);
+	t1.penUp();
+	t2.penUp();
+	t1.setPosition(0, -2 * R);
+	t2.setPosition(0, 2 * R);
+	t1.penDown();
+	t2.penDown();
+	t1.beginFill();
+	t2.beginFill();
+	t2.setRotation(180.f);
+	t1.circle(R, 180.f);
+	t1.circle(R, 180.f, 0);
+	t2.circle(R, 180.f);
+	t2.circle(R, 180.f, 0);
+	t1.circle(2 * R, 180, 0);
+	t2.circle(2 * R, 180, 0);
+	t2.endFill();
+	t1.endFill();
+	t1.hideTurtle();
+	t2.hideTurtle();
+}
+
+float func(const float& x) 
+{
+	return pow((x), 2);
 }
 
 int main() 
 {
 	
 	Canvas c(1600, 1000);
-	ex4(c);
-	//turtle.hideTurtle();
+	c.newTurtle("turtle");
+	float zoom = 10;
+	float start = -5;
+	start *= zoom;
+	float end = -start;
+	const float step = 1.f;
+	c.getTurtle("turtle").penUp();
+	c.getTurtle("turtle").setPosition(start, func(start/zoom)*zoom);
+	c.getTurtle("turtle").penDown();
+	c.getTurtle("turtle").plotFunction([zoom](const float& x)->float
+		{
+			return func(x / zoom) * zoom;
+		}, start, end);
 
 	c.run();
 	return 0;

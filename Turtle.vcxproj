@@ -131,6 +131,7 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SceneNode.cpp" />
+    <ClCompile Include="VectTools.cpp" />
     <ClCompile Include="TurtleArrow.cpp" />
     <ClCompile Include="TurtleDot.cpp" />
     <ClCompile Include="TurtleNode.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Earcut.hpp" />
+    <ClInclude Include="VectTools.h" />
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="TurtleArrow.h" />
     <ClInclude Include="TurtleController.h" />

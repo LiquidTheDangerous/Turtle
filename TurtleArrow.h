@@ -1,5 +1,8 @@
-#pragma once
 #include <SFML/Graphics.hpp>
+
+#ifndef _TURTLEARROW_H_
+#define _TURTLEARROW_H_
+
 class TurtleArrow : public sf::Drawable
 {
 public:
@@ -12,3 +15,5 @@ private:
 	friend class TurtleNode;
 };
 
+
+#endif // !_TURTLEARROW_H_

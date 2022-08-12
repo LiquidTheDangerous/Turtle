@@ -1,7 +1,10 @@
-#pragma once
 #include <SFML/Graphics.hpp>
 #include <list>
 #include "Command.h"
+
+#ifndef _SCENENODE_H_
+#define _SCENENODE_H_
+ 
 
 class SceneNode:
 	public sf::Drawable,
@@ -52,3 +55,4 @@ protected:
 	std::string name;
 };
 
+#endif // !_SCENENODE_H_

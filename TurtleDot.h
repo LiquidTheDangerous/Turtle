@@ -1,5 +1,7 @@
-#pragma once
 #include <SFML/Graphics.hpp>
+#ifndef _TURTLEDOT_H_
+#define _TURTLEDOT_H_
+
 class TurtleDot : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -8,3 +10,5 @@ public:
 	sf::CircleShape circle;
 };
 
+
+#endif // !_TURTLEDOT_H_

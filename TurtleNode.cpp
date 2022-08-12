@@ -129,3 +129,8 @@ void TurtleNode::setPenUp(const bool& flag)
 {
 	this->isPenUp = flag;
 }
+
+void TurtleNode::attachCanvas(Canvas* canvas)
+{
+	this->canvas = canvas;
+}

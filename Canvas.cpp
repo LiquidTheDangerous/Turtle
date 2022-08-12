@@ -1,13 +1,14 @@
 #include "Canvas.h"
+#include "TurtleController.h"
 #include <iostream>
 const sf::Time Canvas::TimePerFrame = sf::seconds(1.f / 60.f);
-Canvas::Canvas(const int& w, const int& h, const std::string &title):
-	window(sf::VideoMode(w,h),title),
+Canvas::Canvas(const int& w, const int& h, const std::string& title) :
+	window(sf::VideoMode(w, h), title),
 	layers(this->layersCount),
 	view(window.getDefaultView()),
-	userInputController(&this->commandQueue)
+	userInputController(&this->commandQueue),
+	bgColor(255, 255, 255, 255)
 {
-	this->turlte = new TurtleNode();
 	this->buildCanvas();
 	//this->view.move(-w / 2, -h / 2);
 	
@@ -55,6 +56,55 @@ void Canvas::setBackgroundColor(const unsigned char& r, const unsigned char& g, 
 	this->bgColor = sf::Color(r, g, b, alpha);
 }
 
+void Canvas::saveToFile(const std::string& fileName)
+{
+	sf::Vector2u windowSize = window.getSize();
+	sf::Texture texture;
+	texture.create(windowSize.x, windowSize.y);
+	texture.update(window);
+	sf::Image screenshot = texture.copyToImage();
+	screenshot.saveToFile(fileName);
+}
+
+TurtleController Canvas::newTurtle(const std::string& name)
+{
+	if (this->isExistTurtle(name)) 
+	{
+		throw std::runtime_error("turtle with that name already exists");
+	}
+	std::unique_ptr<TurtleNode> turtle = std::make_unique<TurtleNode>();
+	TurtleNode* node = turtle.get();
+	node->name = name;
+	node->canvas = this;
+	this->layers[Layers::front]->attachChild(std::move(turtle));
+	this->turtles.push_back(node);
+	return TurtleController(node);
+}
+
+TurtleController Canvas::getTurtle(const std::string& name)
+{
+	for (TurtleNode*& node : this->turtles) 
+	{
+		if (node->name == name) 
+		{
+			return TurtleController(node);
+		}
+	}
+	throw std::runtime_error("no turtle with that name");
+}
+
+bool Canvas::isExistTurtle(const std::string& name)
+{
+	for (TurtleNode*& node : this->turtles) 
+	{
+		if (node->name == name) 
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void Canvas::run()
 {
 	sf::Clock clock;
@@ -84,8 +134,5 @@ void Canvas::buildCanvas()
 	//Normalization coordinat system.
 	layers[Layers::front]->setPosition(this->window.getSize().x / 2.f, this->window.getSize().y / 2.f);
 	this->layers[Layers::front]->setScale(1, -1);
-
-	SceneNode::SceneNodePtr t(this->turlte);
-	this->layers[Layers::front]->attachChild(std::move(t));
 
 }

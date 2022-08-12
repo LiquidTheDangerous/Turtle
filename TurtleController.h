@@ -2,6 +2,11 @@
 #include "TurtleNode.h"
 #include "Earcut.hpp"
 #include <iostream>
+
+#ifndef _TURTLECONTROLLER_H_
+#define _TURTLECONTROLLER_H_
+class TurtleNode;
+
 class TurtleController
 {
 public:
@@ -28,7 +33,8 @@ public:
 	void dot(const float& radius = 15.f, const unsigned char& r = 0U, const unsigned char& g = 0U, const unsigned char& b=0U, const unsigned char& alpha = 255U);
 	void clearDots();
 	void circle(const float& radius = 100.f, const float& angle = 360.f,const bool& left = 1, const int& point_count = 360);
-	void plotFunction(std::function<float(const float& x)> func, const float& start = -100.f, const float& end = 100.f, const float& step = 1.f, const float& wx = 1.f, const float& wy = 1.f);
+	void plotFunction(std::function<float(const float& x)> func, const float& start = -100.f, const float& end = 100.f, const float& step = 1.f);
+	void plotFunction(std::function<float(const float& x)> x_t, std::function<float(const float& x)> y_t,const float& start, const float& end, const float& step = 1.f);
 	void logPosition(std::ostream& stream = std::cout);
 	void penUp();
 	void penDown();
@@ -43,10 +49,12 @@ public:
 	void pushState();
 	void popState();
 	void clearLines();
-	
+	void screenShot(const std::string& fileName);
 	void setLinesColor(const unsigned char& r, const unsigned char& g, const unsigned char& b,const unsigned char& alpha = 255U);
+	void setBackgroundColor(const unsigned char& r, const unsigned char& g, const unsigned char& b, const unsigned char& alpha = 255U);
 private:
 
+	
 	struct EndFill
 	{
 		bool* done;
@@ -100,6 +108,158 @@ private:
 			}
 			*done = true;
 		}
+	};
+
+
+	struct FuncPlotParam
+	{
+		std::function<float(const float& x)> x_t;
+		std::function<float(const float& x)> y_t;
+		float start;
+		float end;
+		float step;
+		float absSpeed;
+		bool init = false;
+		bool* done;
+		float len;
+		float _cos;
+		float _sin;
+		float a_sin;
+		float a_cos;
+		float angle;
+		int index = 0;
+		sf::Vector2f current_vect;
+		sf::Vector2f nextPos;
+		sf::Transform Trans;
+		std::vector < sf::Vector2f > dvect;
+		void operator()(TurtleNode& node, const sf::Time& dt)
+		{
+			sf::Vector2f position = node.getPosition();
+			if (!init)
+			{
+				Trans.rotate(node.getRotation());
+				dvect.reserve((end - start) / step);
+
+				sf::Vector2f firstPoint;
+				sf::Vector2f secondPoint;
+				absSpeed = node.getSpeed();
+				for (float _start = start; _start <= end; _start += step)
+				{
+					firstPoint.x = x_t(_start);
+					firstPoint.y = y_t(_start);
+					secondPoint.x = x_t(_start + step);
+					secondPoint.y = y_t(_start + step);
+					dvect.push_back(secondPoint - firstPoint);
+					//std::cout << (secondPoint - firstPoint).x << ' ' << (secondPoint - firstPoint).y << std::endl;
+				}
+
+				if (!node.isPenUp)
+				{
+					sf::VertexArray curve(sf::LineStrip, dvect.size() + 1);
+					//curve.
+					curve[0].position = position;
+					curve[0].color = node.lineColor;
+					for (int i = 1; i < dvect.size() + 1; ++i)
+					{
+						//curve[i].position = position;
+						curve[i].color = sf::Color::Transparent;
+					}
+					node.lines.push_back(curve);
+				}
+
+				current_vect = Trans.transformPoint(dvect[index]);
+				nextPos = position + current_vect;
+				len = std::sqrt(std::pow(current_vect.x, 2) + std::pow(current_vect.y, 2));
+				_cos = current_vect.x / len;
+				_sin = current_vect.y / len;
+				a_cos = std::acos(_cos) * 180.f / TurtleNode::PI;
+				a_sin = std::asin(_sin) * 180.f / TurtleNode::PI;
+				if (current_vect.x > 0)
+				{
+					if (current_vect.y > 0)
+					{
+						angle = a_sin;
+						
+					}
+					else
+					{
+						angle = a_cos;
+					}
+				}
+				else
+				{
+
+					angle = 180 - a_sin;
+
+				}
+
+
+				node.setRotation(angle);
+				init = true;
+			}//!init
+
+			if (!node.isPenUp)
+			{
+				node.lines.back()[index].color = node.lineColor;
+				node.lines.back()[index + 1].position = position;
+			}
+
+			if (index >= dvect.size())
+			{
+				*done = true;
+				return;
+			}
+
+
+			float dtf = dt.asSeconds();
+			if (std::pow((position.x - nextPos.x), 2) + std::pow((position.y - nextPos.y), 2) <= std::pow(dtf * absSpeed, 2) + 10.f)
+			{
+				node.setPosition(nextPos);
+				position = node.getPosition();
+				if (index + 1 < dvect.size())
+				{
+					index += 1;
+					if (!node.isPenUp)
+					{
+						node.lines.back()[index].position = nextPos;
+					}
+					current_vect = Trans.transformPoint(dvect[index]);
+					nextPos = position + current_vect;
+					len = std::sqrt(std::pow(current_vect.x, 2) + std::pow(current_vect.y, 2));
+					_cos = current_vect.x / len;
+					_sin = current_vect.y / len;
+					a_cos = std::acos(_cos) * 180.f / TurtleNode::PI;
+					a_sin = std::asin(_sin) * 180.f / TurtleNode::PI;
+					if (current_vect.x > 0)
+					{
+						if (current_vect.y > 0)
+						{
+							angle = a_cos;
+						}
+						else
+						{
+							angle = a_sin;
+						}
+					}
+					else
+					{
+						angle = 180 - a_sin;
+					}
+					node.setRotation(angle);
+				}
+				else
+				{
+
+					*done = true;
+					return;
+				}
+			}
+			else
+			{
+				node.move(dtf * absSpeed * _cos, dtf * absSpeed * _sin);
+			}
+			//*done = true;
+		};
 	};
 
 	struct FuncPlot 
@@ -670,3 +830,5 @@ private:
 	TurtleNode* turtle;
 };
 
+
+#endif // !_TURTLECONTROLLER_H_

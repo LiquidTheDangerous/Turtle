@@ -1,6 +1,8 @@
-#pragma once
 #include <queue>
 #include "Command.h"
+#ifndef _USERINPUTCONTROLLER_H_
+#define _USERINPUTCONTROLLER_H_
+
 class UserInputController
 {
 public:
@@ -13,3 +15,5 @@ private:
 	std::queue<Command> * commads;
 };
 
+
+#endif // !_USERINPUTCONTROLLER_H_

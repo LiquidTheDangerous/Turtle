@@ -1,5 +1,4 @@
 #include "TurtleController.h"
-
 TurtleController::TurtleController():
 	turtle(nullptr)
 {
@@ -203,11 +202,25 @@ void TurtleController::circle(const float& radius, const float& angle,const bool
 	turtle->lastPushed().action = command;
 }
 
-void TurtleController::plotFunction(std::function<float(const float& x)> func, const float& start, const float& end, const float& step, const float& wx, const float& wy)
+void TurtleController::plotFunction(std::function<float(const float& x)> func, const float& start, const float& end, const float& step)
 {
 	TurtleNode*& turtle = this->turtle;
 	FuncPlot command;
 	command.func= func;
+	command.start = start;
+	command.end = end;
+	command.step = step;
+	turtle->pushCommand(TurtleNode::TurtleCommand());
+	command.done = &turtle->lastPushed().done;
+	turtle->lastPushed().action = command;
+}
+
+void TurtleController::plotFunction(std::function<float(const float& x)> x_t, std::function<float(const float& x)> y_t, const float& start, const float& end, const float& step)
+{
+	TurtleNode*& turtle = this->turtle;
+	FuncPlotParam command;
+	command.x_t = x_t;
+	command.y_t = y_t;
 	command.start = start;
 	command.end = end;
 	command.step = step;
@@ -362,14 +375,25 @@ void TurtleController::clearLines()
 	
 }
 
+void TurtleController::screenShot(const std::string& fileName)
+{
+	TurtleNode*& turtle = this->turtle;
+	turtle->pushCommand(TurtleNode::TurtleCommand());
+	bool *done = &turtle->lastPushed().done;
+	Canvas* canvas = turtle->canvas;
+	turtle->lastPushed().action =
+		[done,canvas,fileName](TurtleNode& node, const sf::Time& dt)
+	{
+		canvas->saveToFile(fileName);
+		*done = true;
+	};
+}
+
 void TurtleController::setLinesColor(const unsigned char& r, const unsigned char& g, const unsigned char& b,const unsigned char& alpha )
 {
 	TurtleNode*& turtle = this->turtle;
 	auto* arrow = &turtle->arrow;
 	
-	this->turtle->lineColor.r = r;
-	this->turtle->lineColor.g = g;
-	this->turtle->lineColor.b = b;
 	turtle->pushCommand(TurtleNode::TurtleCommand());
 	auto& done = turtle->lastPushed().done;
 	turtle->lastPushed().action = 
@@ -380,6 +404,21 @@ void TurtleController::setLinesColor(const unsigned char& r, const unsigned char
 		done = true;
 	};
 
+}
+
+void TurtleController::setBackgroundColor(const unsigned char& r, const unsigned char& g, const unsigned char& b, const unsigned char& alpha)
+{
+	TurtleNode*& turtle = this->turtle;
+	auto Canvas = turtle->canvas;
+
+	turtle->pushCommand(TurtleNode::TurtleCommand());
+	auto& done = turtle->lastPushed().done;
+	turtle->lastPushed().action =
+		[&done, r, g, b, alpha, Canvas](TurtleNode& node, const sf::Time& dt)
+	{
+		Canvas->setBackgroundColor(r, g, b, alpha);
+		done = true;
+	};
 }
 
 void TurtleController::getPosition(sf::Vector2f& out)

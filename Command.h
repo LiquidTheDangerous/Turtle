@@ -1,8 +1,10 @@
-#pragma once
+
 #include <string>
 #include <SFML/Graphics.hpp>
 #include <functional>
 class SceneNode;
+#ifndef _COMMAND_H_
+#define _COMMAND_H_
 class Command
 {
 public:
@@ -33,3 +35,4 @@ private:
 	std::string name;
 };
 
+#endif

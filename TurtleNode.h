@@ -1,9 +1,11 @@
-#pragma once
 #include "SceneNode.h"
 #include "TurtleArrow.h"
 #include "TurtleDot.h"
 #include <stack>
 #include <queue>
+#ifndef _TURTLENODE_H_
+#define _TURTLENODE_H_
+#include "Canvas.h"
 
 
 class TurtleNode : public SceneNode
@@ -67,7 +69,9 @@ public:
 	void setLineColor(const sf::Color& color);
 	sf::Color getLineColor();
 	void setPenUp(const bool& flag);
+	void attachCanvas(Canvas* canvas);
 private:
+	Canvas* canvas;
 	TurtleArrow arrow;
 	std::list<sf::VertexArray> lines;
 	std::list<sf::VertexArray> fillZones;
@@ -82,6 +86,7 @@ private:
 	sf::Color lineColor;
 
 	friend class TurtleController;
+	friend class Canvas;
 	struct TurtleState
 	{
 		float angle;
@@ -92,3 +97,5 @@ private:
 	
 };
 
+
+#endif // !_TURTLENODE_H_
